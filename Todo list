@@ -1,0 +1,240 @@
+import tkinter as tk
+from tkinter import ttk, messagebox, scrolledtext
+import json
+import datetime
+
+class ToDoList:
+    def __init__(self):
+        self.tasks = []
+
+    def add_task(self, task, priority=None, deadline=None, subtasks=None, notes=None, repeat=None, dependencies=None):
+        self.tasks.append({"task": task, "priority": priority, "deadline": deadline, "completed": False,
+                           "subtasks": subtasks or [], "notes": notes or "", "repeat": repeat, "dependencies": dependencies or []})
+        messagebox.showinfo("Success", "Task added successfully.")
+
+    def remove_task(self, task_index):
+        if 0 <= task_index < len(self.tasks):
+            del self.tasks[task_index]
+            messagebox.showinfo("Success", "Task removed successfully.")
+        else:
+            messagebox.showerror("Error", "Invalid task index.")
+
+    def edit_task(self, task_index, new_task):
+        if 0 <= task_index < len(self.tasks):
+            self.tasks[task_index]["task"] = new_task
+            messagebox.showinfo("Success", "Task edited successfully.")
+        else:
+            messagebox.showerror("Error", "Invalid task index.")
+
+    def mark_task_as_completed(self, task_index):
+        if 0 <= task_index < len(self.tasks):
+            self.tasks[task_index]["completed"] = True
+            messagebox.showinfo("Success", "Task marked as completed.")
+        else:
+            messagebox.showerror("Error", "Invalid task index.")
+
+    def show_tasks(self):
+        if self.tasks:
+            task_info_text = ""
+            for i, task_info in enumerate(self.tasks, 1):
+                status = "Completed" if task_info["completed"] else "Pending"
+                priority = task_info["priority"] if task_info["priority"] else "Not Set"
+                deadline = task_info["deadline"] if task_info["deadline"] else "None"
+                task_info_text += f"{i}. {task_info['task']} [Priority: {priority}, Deadline: {deadline}, Status: {status}]\n"
+            messagebox.showinfo("Your To-Do List", task_info_text)
+        else:
+            messagebox.showinfo("Your To-Do List", "Your to-do list is empty.")
+
+    def clear_tasks(self):
+        self.tasks = []
+        messagebox.showinfo("Success", "All tasks cleared.")
+
+    def sort_tasks(self, option):
+        if option == '1':
+            self.tasks.sort(key=lambda x: (x.get('priority', 0), x.get('deadline', datetime.datetime.max)))
+            messagebox.showinfo("Success", "Tasks sorted by priority and deadline.")
+        elif option == '2':
+            self.tasks.sort(key=lambda x: x.get('deadline', datetime.datetime.max))
+            messagebox.showinfo("Success", "Tasks sorted by deadline.")
+        elif option == '3':
+            self.tasks.sort(key=lambda x: x.get('completed'))
+            messagebox.showinfo("Success", "Tasks sorted by completion status.")
+        else:
+            messagebox.showerror("Error", "Invalid option.")
+
+    def filter_tasks(self, option):
+        if option == '1':
+            filtered_tasks = [task for task in self.tasks if task["completed"]]
+            if filtered_tasks:
+                task_info_text = "\n".join([f"- {task['task']}" for task in filtered_tasks])
+                messagebox.showinfo("Completed Tasks", task_info_text)
+            else:
+                messagebox.showinfo("Completed Tasks", "No completed tasks found.")
+        elif option == '2':
+            filtered_tasks = [task for task in self.tasks if not task["completed"]]
+            if filtered_tasks:
+                task_info_text = "\n".join([f"- {task['task']}" for task in filtered_tasks])
+                messagebox.showinfo("Pending Tasks", task_info_text)
+            else:
+                messagebox.showinfo("Pending Tasks", "No pending tasks found.")
+        else:
+            messagebox.showerror("Error", "Invalid option.")
+
+class Notes:
+    def __init__(self):
+        self.notes = {}
+
+    def add_note(self, title, content, tags=None):
+        self.notes[title] = {"content": content, "tags": tags}
+        messagebox.showinfo("Success", "Note added successfully.")
+
+    def remove_note(self, title):
+        if title in self.notes:
+            del self.notes[title]
+            messagebox.showinfo("Success", "Note removed successfully.")
+        else:
+            messagebox.showerror("Error", "Note not found.")
+
+    def search_notes(self, title):
+        if title in self.notes:
+            note = self.notes[title]
+            messagebox.showinfo("Note Details", f"Title: {title}\nContent: {note['content']}\nTags: {note['tags']}")
+        else:
+            messagebox.showerror("Error", "Note not found.")
+
+    def show_notes(self):
+        if self.notes:
+            note_info_text = ""
+            for title, note in self.notes.items():
+                note_info_text += f"Title: {title}\nContent: {note['content']}\nTags: {note['tags']}\n\n"
+            messagebox.showinfo("Your Notes", note_info_text)
+        else:
+            messagebox.showinfo("Your Notes", "Your notes are empty.")
+
+    def clear_notes(self):
+        self.notes = {}
+        messagebox.showinfo("Success", "All notes cleared.")
+
+def main():
+    todo_list = ToDoList()
+    notes = Notes()
+
+    def add_task():
+        task = task_entry.get()
+        todo_list.add_task(task)
+
+    def remove_task():
+        task_index = int(task_index_entry.get())
+        todo_list.remove_task(task_index - 1)
+
+    def edit_task():
+        task_index = int(task_index_entry.get())
+        new_task = new_task_entry.get()
+        todo_list.edit_task(task_index - 1, new_task)
+
+    def mark_task_as_completed():
+        task_index = int(task_index_entry.get())
+        todo_list.mark_task_as_completed(task_index - 1)
+
+    def show_tasks():
+        todo_list.show_tasks()
+
+    def clear_tasks():
+        todo_list.clear_tasks()
+
+    def sort_tasks():
+        option = sort_option_entry.get()
+        todo_list.sort_tasks(option)
+
+    def filter_tasks():
+        option = filter_option_entry.get()
+        todo_list.filter_tasks(option)
+
+    def add_note():
+        title = note_title_entry.get()
+        content = note_content_entry.get("1.0", tk.END)
+        tags = note_tags_entry.get()
+        notes.add_note(title, content, tags)
+
+    def remove_note():
+        title = note_title_entry.get()
+        notes.remove_note(title)
+
+    def search_note():
+        title = note_title_entry.get()
+        notes.search_notes(title)
+
+    def show_notes():
+        notes.show_notes()
+
+    def clear_notes():
+        notes.clear_notes()
+
+    root = tk.Tk()
+    root.title("To-Do List & Notes")
+
+    # Task section
+    task_frame = ttk.LabelFrame(root, text="Task Management")
+    task_frame.grid(row=0, column=0, padx=10, pady=10, sticky="w")
+
+    tk.Label(task_frame, text="Task:").grid(row=0, column=0, sticky="w")
+    task_entry = tk.Entry(task_frame, width=30)
+    task_entry.grid(row=0, column=1, padx=5, pady=5)
+    tk.Button(task_frame, text="Add Task", command=add_task).grid(row=0, column=2, padx=5, pady=5)
+
+    tk.Label(task_frame, text="Task Index to Remove/Edit/Mark Completed:").grid(row=1, column=0, sticky="w")
+    task_index_entry = tk.Entry(task_frame, width=5)
+    task_index_entry.grid(row=1, column=1, padx=5, pady=5)
+
+    tk.Label(task_frame, text="New Task (for editing):").grid(row=2, column=0, sticky="w")
+    new_task_entry = tk.Entry(task_frame, width=30)
+    new_task_entry.grid(row=2, column=1, padx=5, pady=5)
+
+    tk.Button(task_frame, text="Remove Task", command=remove_task).grid(row=3, column=0, padx=5, pady=5)
+    tk.Button(task_frame, text="Edit Task", command=edit_task).grid(row=3, column=1, padx=5, pady=5)
+    tk.Button(task_frame, text="Mark Task as Completed", command=mark_task_as_completed).grid(row=3, column=2, padx=5, pady=5)
+
+    tk.Button(task_frame, text="Show Tasks", command=show_tasks).grid(row=4, column=0, padx=5, pady=5)
+    tk.Button(task_frame, text="Clear Tasks", command=clear_tasks).grid(row=4, column=1, padx=5, pady=5)
+
+    sort_frame = ttk.LabelFrame(root, text="Sort & Filter Tasks")
+    sort_frame.grid(row=1, column=0, padx=10, pady=10, sticky="w")
+
+    tk.Label(sort_frame, text="Sort Tasks (1: Priority and Deadline, 2: Deadline, 3: Completion Status):").grid(row=0, column=0, sticky="w")
+    sort_option_entry = tk.Entry(sort_frame, width=5)
+    sort_option_entry.grid(row=0, column=1, padx=5, pady=5)
+    tk.Button(sort_frame, text="Sort Tasks", command=sort_tasks).grid(row=0, column=2, padx=5, pady=5)
+
+    tk.Label(sort_frame, text="Filter Tasks (1: Completed Tasks, 2: Pending Tasks):").grid(row=1, column=0, sticky="w")
+    filter_option_entry = tk.Entry(sort_frame, width=5)
+    filter_option_entry.grid(row=1, column=1, padx=5, pady=5)
+    tk.Button(sort_frame, text="Filter Tasks", command=filter_tasks).grid(row=1, column=2, padx=5, pady=5)
+
+    # Notes section
+    notes_frame = ttk.LabelFrame(root, text="Notes Management")
+    notes_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+
+    tk.Label(notes_frame, text="Note Title:").grid(row=0, column=0, sticky="w")
+    note_title_entry = tk.Entry(notes_frame, width=30)
+    note_title_entry.grid(row=0, column=1, padx=5, pady=5)
+
+    tk.Label(notes_frame, text="Note Content:").grid(row=1, column=0, sticky="w")
+    note_content_entry = scrolledtext.ScrolledText(notes_frame, width=30, height=5)
+    note_content_entry.grid(row=1, column=1, padx=5, pady=5)
+
+    tk.Label(notes_frame, text="Note Tags:").grid(row=2, column=0, sticky="w")
+    note_tags_entry = tk.Entry(notes_frame, width=30)
+    note_tags_entry.grid(row=2, column=1, padx=5, pady=5)
+
+    tk.Button(notes_frame, text="Add Note", command=add_note).grid(row=3, column=0, padx=5, pady=5)
+    tk.Button(notes_frame, text="Remove Note", command=remove_note).grid(row=3, column=1, padx=5, pady=5)
+    tk.Button(notes_frame, text="Search Note", command=search_note).grid(row=3, column=2, padx=5, pady=5)
+
+    tk.Button(notes_frame, text="Show Notes", command=show_notes).grid(row=4, column=0, padx=5, pady=5)
+    tk.Button(notes_frame, text="Clear Notes", command=clear_notes).grid(row=4, column=1, padx=5, pady=5)
+
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
+
